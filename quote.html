@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Quotes</title>
+    <!-- Google Fonts: Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Friendly Light Theme */
+            --bg-body: #f3f4f6;
+            --bg-gradient: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e5e7eb;
+            --radius-l: 24px;
+            --radius-m: 16px;
+            --radius-s: 12px;
+            --radius-pill: 50px;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --glass-blur: blur(12px);
+            --modal-overlay: rgba(31, 41, 55, 0.4);
+            
+            --btn-bg: #ffffff;
+            --btn-border: #d1d5db;
+        }
+
+        body.dark-mode {
+            /* Soft Dark Theme */
+            --bg-body: #111827;
+            --bg-gradient: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            --bg-card: rgba(31, 41, 55, 0.9);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent: #a78bfa;
+            --accent-hover: #c4b5fd;
+            --danger: #f87171;
+            --success: #34d399;
+            --border: #374151;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+            
+            --btn-bg: #1f2937;
+            --btn-border: #4b5563;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease, border-color 0.3s ease; }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            padding: 1.5rem 1rem; /* Reduced padding for mobile */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand { 
+            font-weight: 800; 
+            font-size: 1.4rem; 
+            color: var(--accent); 
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .controls { display: flex; gap: 0.5rem; align-items: center; }
+
+        button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--text-secondary);
+            padding: 0.6rem;
+            border-radius: var(--radius-pill);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        button:hover { background-color: rgba(0,0,0,0.05); color: var(--text-primary); }
+        body.dark-mode button:hover { background-color: rgba(255,255,255,0.1); }
+        
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+        }
+        .btn-primary:hover { background-color: var(--accent-hover); color: white; transform: translateY(-2px); }
+
+        .btn-icon { width: 44px; height: 44px; }
+
+        /* --- Main Layout --- */
+        main {
+            flex: 1;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 0.5rem 1rem 3rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Filters Toolbar --- */
+        .toolbar {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            padding: 0.8rem;
+            border-radius: var(--radius-m);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            box-shadow: var(--shadow);
+            border: var(--glass-border);
+        }
+
+        .view-toggles { display: flex; gap: 0.2rem; }
+        .view-toggles button { padding: 0.5rem 0.8rem; font-size: 0.9rem; border-radius: var(--radius-s); }
+        .view-toggles button.active { background-color: rgba(139, 92, 246, 0.1); color: var(--accent); }
+
+        .filter-group { display: flex; gap: 0.5rem; align-items: center; flex: 1; justify-content: flex-end; }
+        
+        select {
+            padding: 0.5rem 0.5rem;
+            border-radius: var(--radius-s);
+            border: 1px solid transparent;
+            background-color: rgba(0,0,0,0.05);
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            max-width: 130px;
+        }
+        body.dark-mode select { background-color: rgba(255,255,255,0.1); }
+        .btn-filter-toggle.active { color: var(--accent); }
+
+        /* --- Single Quote View (Fixed Height Card) --- */
+        .quote-card {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: var(--radius-l);
+            box-shadow: var(--shadow);
+            border: var(--glass-border);
+            height: 580px; /* Slightly taller for new layout */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Content Area */
+        #quote-display-area {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        #quote-display-area::-webkit-scrollbar { display: none; }
+
+        .fade-content { animation: fadeIn 0.4s ease forwards; }
+
+        .quote-text {
+            font-size: 1.6rem; /* Slightly smaller for mobile safety */
+            font-weight: 800;
+            line-height: 1.35;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .quote-author {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        .quote-category {
+            margin-top: 1rem;
+            padding: 0.3rem 1rem;
+            background-color: rgba(139, 92, 246, 0.1);
+            border-radius: var(--radius-pill);
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- NEW LAYOUT: Stacked Controls --- */
+        .card-actions {
+            background: rgba(0,0,0,0.02);
+            border-top: 1px solid var(--border);
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column; /* Stack vertically */
+            gap: 1rem;
+            min-height: 140px; /* Ensure space for both rows */
+        }
+        
+        /* Top Row: Icons */
+        .action-group {
+            display: flex;
+            justify-content: center; /* Center them */
+            gap: 1.5rem;
+            width: 100%;
+        }
+
+        .action-icon { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            background: transparent; 
+            color: var(--text-secondary);
+            border: 1px solid transparent; 
+        }
+        .action-icon:hover { background-color: rgba(0,0,0,0.05); color: var(--accent); }
+        .action-icon.active { color: #fbbf24; background-color: rgba(251, 191, 36, 0.1); border-color: rgba(251, 191, 36, 0.2); }
+        .action-icon.delete:hover { color: var(--danger); background-color: rgba(239, 68, 68, 0.1); }
+
+        /* Bottom Row: Navigation Buttons */
+        .nav-row {
+            display: flex;
+            width: 100%;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            flex: 1; /* Split width 50/50 */
+            height: 55px;
+            border-radius: var(--radius-s);
+            font-size: 1.5rem;
+            
+            /* High Visibility */
+            background-color: var(--btn-bg);
+            border: 2px solid var(--btn-border);
+            color: var(--text-primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+        }
+
+        .nav-btn:hover { 
+            background-color: var(--accent); 
+            border-color: var(--accent);
+            color: white; 
+            box-shadow: 0 4px 10px rgba(139, 92, 246, 0.3);
+            opacity: 1; 
+        }
+        
+        .nav-btn:active { transform: scale(0.98); }
+
+        /* --- List View --- */
+        .list-view { display: none; grid-template-columns: 1fr; gap: 1rem; width: 100%; }
+        .list-view.active { display: grid; }
+
+        .list-item {
+            background: var(--bg-card);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            padding: 1.2rem 1.5rem;
+            border-radius: var(--radius-m);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: var(--glass-border);
+            border-left: 5px solid transparent;
+        }
+        .list-item:hover { border-left-color: var(--accent); }
+        
+        .list-content { flex: 1; padding-right: 1rem; }
+        .list-content h3 { font-size: 1rem; margin-bottom: 0.3rem; font-weight: 700; }
+        .list-content p { font-size: 0.85rem; color: var(--text-secondary); }
+
+        /* --- Toast --- */
+        #toast-container { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 2000; width: 90%; max-width: 300px; pointer-events: none; }
+        .toast { background-color: var(--text-primary); color: var(--bg-body); padding: 0.8rem 1.2rem; border-radius: var(--radius-pill); font-weight: 600; font-size: 0.9rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; gap: 0.5rem; animation: slideUp 0.3s ease; }
+        .toast.success { background-color: var(--success); color: white; }
+        .toast.danger { background-color: var(--danger); color: white; }
+
+        /* --- Modals --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--modal-overlay); justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(5px); }
+        .modal.active { display: flex; animation: fadeIn 0.2s; }
+
+        .modal-content { background-color: var(--bg-body); padding: 2rem; border-radius: var(--radius-l); width: 90%; max-width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); text-align: center; border: 1px solid var(--border); }
+        .modal-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 1.2rem; color: var(--accent); }
+        
+        .form-group { margin-bottom: 1rem; text-align: left; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); margin-left: 0.5rem; }
+        
+        .form-input, .form-textarea { width: 100%; padding: 0.8rem; border-radius: var(--radius-m); border: 2px solid transparent; background-color: rgba(0,0,0,0.05); color: var(--text-primary); font-size: 1rem; font-family: inherit; }
+        .form-input:focus, .form-textarea:focus { border-color: var(--accent); outline: none; background-color: transparent; }
+        .form-textarea { resize: vertical; min-height: 100px; }
+
+        .topic-selector-container { display: flex; gap: 0.5rem; }
+        .btn-small { font-size: 0.8rem; padding: 0.5rem 0.8rem; white-space: nowrap; border: 1px solid var(--border); }
+
+        .modal-footer { margin-top: 1.5rem; display: flex; justify-content: center; gap: 1rem; }
+        .btn-cancel { background-color: transparent; color: var(--text-secondary); border: 2px solid var(--text-secondary); }
+        .btn-cancel:hover { border-color: var(--text-primary); color: var(--text-primary); }
+        .btn-danger { background-color: var(--danger); color: white; }
+
+        /* Utilities */
+        .hidden { display: none !important; }
+        .empty-state { text-align: center; color: var(--text-secondary); margin-top: 4rem; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        svg { width: 24px; height: 24px; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Lumina
+        </div>
+        <div class="controls">
+            <button class="btn-icon" onclick="toggleTheme()" title="Toggle Dark Mode">
+                <svg id="theme-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+            <button class="btn-primary" onclick="openModal('add')">+ Add</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="view-toggles">
+                <button id="view-card" class="active" onclick="switchView('card')" title="Card View">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                </button>
+                <button id="view-list" onclick="switchView('list')" title="List View">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+            
+            <div class="filter-group">
+                <button onclick="shuffleQuotes()" title="Shuffle">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                </button>
+
+                <select id="category-filter" onchange="applyFilters()">
+                    <option value="all">All Topics</option>
+                    <!-- Populated by JS -->
+                </select>
+                <button id="fav-filter-btn" class="btn-filter-toggle" onclick="toggleFavFilter()" title="Show Bookmarked Only">
+                    <svg fill="currentColor" stroke="none" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Card View -->
+        <div id="card-container" class="quote-card">
+            <!-- Content Area: Flexible -->
+            <div id="quote-display-area" class="fade-content">
+                <div class="quote-category" id="display-category">Category</div>
+                <div class="quote-text" id="display-text">"Loading..."</div>
+                <div class="quote-author" id="display-author">-</div>
+            </div>
+
+            <!-- Bottom Bar: Fixed -->
+            <div class="card-actions">
+                <!-- TOP ROW: Action Icons -->
+                <div class="action-group">
+                    <button class="action-icon" id="card-bookmark-btn" onclick="toggleCurrentBookmark()" title="Bookmark">
+                        <svg fill="currentColor" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+                    </button>
+                    
+                    <button class="action-icon" onclick="openEditModalCurrent()" title="Edit Quote & Topic">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </button>
+
+                    <button class="action-icon" onclick="shareQuote()" title="Copy to Clipboard">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    </button>
+
+                    <button class="action-icon delete" onclick="confirmDeleteCurrent()" title="Delete">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+
+                <!-- BOTTOM ROW: Big Nav Buttons Side-by-Side -->
+                <div class="nav-row">
+                    <button class="nav-btn" onclick="prevQuote()" title="Previous">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:36px; height:36px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+                    </button>
+                    <button class="nav-btn" onclick="nextQuote()" title="Next">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:36px; height:36px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- List View -->
+        <div id="list-container" class="list-view">
+            <!-- Items injected by JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state hidden">
+            <h3>No quotes found</h3>
+            <p>Try changing the category.</p>
+        </div>
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- MAIN MODAL (Add & Edit) -->
+    <div id="main-modal" class="modal">
+        <div class="modal-content">
+            <div id="modal-title" class="modal-title">Add New Quote</div>
+            
+            <div class="form-group">
+                <label>Quote Text</label>
+                <textarea id="modal-text" class="form-textarea" placeholder="Type something inspiring..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Who said it?</label>
+                <input id="modal-author" type="text" class="form-input" placeholder="e.g. Einstein">
+            </div>
+            <div class="form-group">
+                <label>Category (Topic)</label>
+                <div class="topic-selector-container">
+                    <select id="modal-category-select" class="form-input">
+                        <!-- Populated by JS -->
+                    </select>
+                    <input id="modal-category-input" type="text" class="form-input hidden" placeholder="New Topic Name">
+                    <button type="button" class="btn-small" onclick="toggleCustomCategory()">Enter Custom</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal('main-modal')">Cancel</button>
+                <button class="btn-primary" onclick="handleSave()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRM MODAL -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title" style="color: var(--danger)">Delete Quote?</div>
+            <p>Are you sure? This cannot be undone.</p>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeModal('delete-modal')">Cancel</button>
+                <button class="btn-primary btn-danger" onclick="executeDelete()">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Data & State ---
+        const defaultQuotes = [
+            { id: 1, text: "The only way to do great work is to love what you do.", author: "Steve Jobs", category: "motivation", bookmarked: false },
+            { id: 2, text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier", category: "study", bookmarked: false },
+            { id: 3, text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein", category: "life", bookmarked: false },
+            { id: 4, text: "It always seems impossible until it's done.", author: "Nelson Mandela", category: "motivation", bookmarked: false },
+            { id: 5, text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt", category: "life", bookmarked: false },
+            { id: 6, text: "Technology is best when it brings people together.", author: "Matt Mullenweg", category: "tech", bookmarked: false }
+        ];
+
+        let quotes = JSON.parse(localStorage.getItem('luminaQuotes')) || defaultQuotes;
+        let currentIndex = 0;
+        let filterCategory = 'all';
+        let filterFav = false;
+        let deleteIdTarget = null;
+        let editIdTarget = null; // null means 'add mode', ID means 'edit mode'
+        let isCustomCategory = false;
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            refreshCategories();
+            applyFilters();
+        });
+
+        // --- Core Helpers ---
+        function getFilteredQuotes() {
+            return quotes.filter(q => {
+                const catMatch = filterCategory === 'all' || q.category === filterCategory;
+                const favMatch = !filterFav || q.bookmarked;
+                return catMatch && favMatch;
+            });
+        }
+
+        function getUniqueCategories() {
+            const cats = new Set(['motivation', 'study', 'life', 'tech', 'other']); // Defaults
+            quotes.forEach(q => cats.add(q.category));
+            return Array.from(cats).sort();
+        }
+
+        function refreshCategories() {
+            const cats = getUniqueCategories();
+            
+            // 1. Update Filter Dropdown
+            const filterSelect = document.getElementById('category-filter');
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = '<option value="all">All Topics</option>';
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+                filterSelect.appendChild(opt);
+            });
+            filterSelect.value = currentFilter;
+
+            // 2. Update Modal Dropdown
+            const modalSelect = document.getElementById('modal-category-select');
+            modalSelect.innerHTML = '';
+            cats.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+                modalSelect.appendChild(opt);
+            });
+        }
+
+        // --- Rendering ---
+        function renderCurrentCard() {
+            const filtered = getFilteredQuotes();
+            const container = document.getElementById('card-container');
+            const emptyState = document.getElementById('empty-state');
+
+            if (filtered.length === 0) {
+                container.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            container.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            if (currentIndex >= filtered.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = filtered.length - 1;
+
+            const quote = filtered[currentIndex];
+            
+            document.getElementById('display-text').textContent = `"${quote.text}"`;
+            document.getElementById('display-author').textContent = quote.author;
+            document.getElementById('display-category').textContent = quote.category;
+
+            // Bookmark State
+            const bmBtn = document.getElementById('card-bookmark-btn');
+            if (quote.bookmarked) {
+                bmBtn.classList.add('active');
+                bmBtn.querySelector('svg').setAttribute('fill', 'currentColor');
+                bmBtn.querySelector('svg').setAttribute('stroke', 'none');
+            } else {
+                bmBtn.classList.remove('active');
+                bmBtn.querySelector('svg').setAttribute('fill', 'none');
+                bmBtn.querySelector('svg').setAttribute('stroke', 'currentColor');
+            }
+        }
+
+        function renderList() {
+            const filtered = getFilteredQuotes();
+            const listContainer = document.getElementById('list-container');
+            const emptyState = document.getElementById('empty-state');
+            listContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            filtered.forEach(q => {
+                const el = document.createElement('div');
+                el.className = 'list-item';
+                const bookmarkIcon = `<svg class="w-5 h-5" fill="${q.bookmarked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>`;
+                const editIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
+                const deleteIcon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+
+                el.innerHTML = `
+                    <div class="list-content">
+                        <h3>"${q.text}"</h3>
+                        <p>${q.author} • <span style="color:var(--accent); font-weight:700; text-transform:capitalize;">${q.category}</span></p>
+                    </div>
+                    <div style="display:flex; gap:0.5rem;">
+                        <button onclick="toggleBookmarkId(${q.id})" class="btn-icon ${q.bookmarked ? 'active' : ''}" style="color: ${q.bookmarked ? '#fbbf24' : 'var(--text-secondary)'}">${bookmarkIcon}</button>
+                        <button onclick="openEditModalId(${q.id})" class="btn-icon" style="color: var(--accent)">${editIcon}</button>
+                        <button onclick="confirmDeleteId(${q.id})" class="btn-icon" style="color: var(--danger)">${deleteIcon}</button>
+                    </div>
+                `;
+                listContainer.appendChild(el);
+            });
+        }
+
+        // --- Modals & CRUD ---
+        
+        function openModal(mode, quote = null) {
+            const modal = document.getElementById('main-modal');
+            const title = document.getElementById('modal-title');
+            
+            // Reset custom category state
+            isCustomCategory = false;
+            updateCustomCategoryUI();
+
+            if (mode === 'add') {
+                editIdTarget = null;
+                title.textContent = "Add New Quote";
+                document.getElementById('modal-text').value = '';
+                document.getElementById('modal-author').value = '';
+                document.getElementById('modal-category-select').value = 'motivation';
+                document.getElementById('modal-category-input').value = '';
+            } else if (mode === 'edit' && quote) {
+                editIdTarget = quote.id;
+                title.textContent = "Edit Quote";
+                document.getElementById('modal-text').value = quote.text;
+                document.getElementById('modal-author').value = quote.author;
+                
+                // Check if existing category is in the select, if not (shouldn't happen often) or if we just want to be safe
+                const select = document.getElementById('modal-category-select');
+                if ([...select.options].some(o => o.value === quote.category)) {
+                    select.value = quote.category;
+                } else {
+                    // It's a custom one that somehow didn't populate? populate it first
+                    refreshCategories();
+                    select.value = quote.category;
+                }
+            }
+            modal.classList.add('active');
+        }
+
+        function openEditModalCurrent() {
+            const filtered = getFilteredQuotes();
+            if(filtered.length > 0) openModal('edit', filtered[currentIndex]);
+        }
+
+        function openEditModalId(id) {
+            const quote = quotes.find(q => q.id === id);
+            if(quote) openModal('edit', quote);
+        }
+
+        function toggleCustomCategory() {
+            isCustomCategory = !isCustomCategory;
+            updateCustomCategoryUI();
+        }
+
+        function updateCustomCategoryUI() {
+            const select = document.getElementById('modal-category-select');
+            const input = document.getElementById('modal-category-input');
+            const btn = document.querySelector('.topic-selector-container button');
+
+            if (isCustomCategory) {
+                select.classList.add('hidden');
+                input.classList.remove('hidden');
+                btn.textContent = "Back to List";
+                input.focus();
+            } else {
+                select.classList.remove('hidden');
+                input.classList.add('hidden');
+                btn.textContent = "Enter Custom";
+            }
+        }
+
+        function handleSave() {
+            const text = document.getElementById('modal-text').value;
+            const author = document.getElementById('modal-author').value;
+            let category = '';
+
+            if (isCustomCategory) {
+                category = document.getElementById('modal-category-input').value.trim().toLowerCase();
+                if(!category) return showToast("Please enter a custom category name", "danger");
+            } else {
+                category = document.getElementById('modal-category-select').value;
+            }
+
+            if (!text || !author) return showToast("Please fill in quote and author", "danger");
+
+            if (editIdTarget === null) {
+                // ADD NEW
+                quotes.push({
+                    id: Date.now(),
+                    text, author, category, bookmarked: false
+                });
+                showToast("Added successfully!", "success");
+            } else {
+                // UPDATE EXISTING
+                const index = quotes.findIndex(q => q.id === editIdTarget);
+                if (index !== -1) {
+                    quotes[index].text = text;
+                    quotes[index].author = author;
+                    quotes[index].category = category;
+                    showToast("Updated successfully!", "success");
+                }
+            }
+
+            localStorage.setItem('luminaQuotes', JSON.stringify(quotes));
+            refreshCategories(); // In case a new custom topic was added
+            applyFilters();
+            closeModal('main-modal');
+        }
+
+        // --- Standard Logic (Next, Prev, Shuffle, Share, Delete) ---
+        function nextQuote() {
+            currentIndex++;
+            triggerFadeAnimation();
+            renderCurrentCard();
+        }
+
+        function prevQuote() {
+            currentIndex--;
+            triggerFadeAnimation();
+            renderCurrentCard();
+        }
+
+        function triggerFadeAnimation() {
+            const el = document.getElementById('quote-display-area');
+            el.classList.remove('fade-content');
+            void el.offsetWidth;
+            el.classList.add('fade-content');
+        }
+
+        function shuffleQuotes() {
+            const filtered = getFilteredQuotes();
+            if (filtered.length > 1) {
+                let newIndex;
+                do { newIndex = Math.floor(Math.random() * filtered.length); } while (newIndex === currentIndex);
+                currentIndex = newIndex;
+                triggerFadeAnimation();
+                renderCurrentCard();
+                showToast("Shuffled!", "info");
+            }
+        }
+
+        function shareQuote() {
+            const filtered = getFilteredQuotes();
+            if (filtered.length > 0) {
+                const q = filtered[currentIndex];
+                const textArea = document.createElement("textarea");
+                textArea.value = `"${q.text}" — ${q.author}`;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast("Copied to clipboard!", "success");
+                } catch (err) {
+                    showToast("Failed to copy", "danger");
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        function toggleCurrentBookmark() {
+            const filtered = getFilteredQuotes();
+            if (filtered.length > 0) toggleBookmarkId(filtered[currentIndex].id);
+        }
+
+        function toggleBookmarkId(id) {
+            const index = quotes.findIndex(q => q.id === id);
+            if (index !== -1) {
+                quotes[index].bookmarked = !quotes[index].bookmarked;
+                localStorage.setItem('luminaQuotes', JSON.stringify(quotes));
+                if(quotes[index].bookmarked) showToast("Bookmarked", "success");
+                else showToast("Removed Bookmark", "info");
+                
+                if (!document.getElementById('card-container').classList.contains('hidden')) renderCurrentCard();
+                else renderList();
+            }
+        }
+
+        function confirmDeleteCurrent() {
+            const filtered = getFilteredQuotes();
+            if (filtered.length > 0) confirmDeleteId(filtered[currentIndex].id);
+        }
+
+        function confirmDeleteId(id) {
+            deleteIdTarget = id;
+            document.getElementById('delete-modal').classList.add('active');
+        }
+
+        function executeDelete() {
+            if (deleteIdTarget !== null) {
+                quotes = quotes.filter(q => q.id !== deleteIdTarget);
+                localStorage.setItem('luminaQuotes', JSON.stringify(quotes));
+                refreshCategories(); // Clean up empty categories? Optional. Keeping them simpler.
+                closeModal('delete-modal');
+                if (currentIndex >= getFilteredQuotes().length) currentIndex = Math.max(0, getFilteredQuotes().length - 1);
+                applyFilters();
+                showToast("Quote deleted", "success");
+            }
+        }
+
+        function switchView(viewName) {
+            const cardContainer = document.getElementById('card-container');
+            const listContainer = document.getElementById('list-container');
+            const btnCard = document.getElementById('view-card');
+            const btnList = document.getElementById('view-list');
+
+            if (viewName === 'card') {
+                cardContainer.classList.remove('hidden');
+                listContainer.classList.remove('active');
+                btnCard.classList.add('active');
+                btnList.classList.remove('active');
+                renderCurrentCard();
+            } else {
+                cardContainer.classList.add('hidden');
+                listContainer.classList.add('active');
+                btnCard.classList.remove('active');
+                btnList.classList.add('active');
+                renderList();
+            }
+        }
+
+        function applyFilters() {
+            filterCategory = document.getElementById('category-filter').value;
+            currentIndex = 0;
+            if (!document.getElementById('card-container').classList.contains('hidden')) renderCurrentCard();
+            else renderList();
+        }
+
+        function toggleFavFilter() {
+            filterFav = !filterFav;
+            const btn = document.getElementById('fav-filter-btn');
+            if (filterFav) {
+                btn.classList.add('active');
+                showToast("Favorites Only", "info");
+            } else {
+                btn.classList.remove('active');
+                showToast("All Quotes", "info");
+            }
+            currentIndex = 0;
+            if (!document.getElementById('card-container').classList.contains('hidden')) renderCurrentCard();
+            else renderList();
+        }
+
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('active'); }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            let icon = type === 'success' ? '✓' : (type === 'danger' ? '✕' : 'ℹ');
+            toast.innerHTML = `<span>${icon}</span> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('luminaTheme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const svg = document.getElementById('theme-icon');
+            if(isDark) svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+            else svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('luminaTheme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeIcon(true);
+            } else updateThemeIcon(false);
+        }
+    </script>
+</body>
+</html>
+
+

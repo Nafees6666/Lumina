@@ -64,7 +64,7 @@
 
         /* --- Header --- */
         header {
-            padding: 1.5rem 1rem; /* Reduced padding for mobile */
+            padding: 1.5rem 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -158,7 +158,18 @@
             max-width: 130px;
         }
         body.dark-mode select { background-color: rgba(255,255,255,0.1); }
-        .btn-filter-toggle.active { color: var(--accent); }
+        
+        /* Toggle Buttons (Shuffle & Fav) */
+        .btn-filter-toggle {
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .btn-filter-toggle.active {
+            color: var(--accent);
+            background-color: rgba(139, 92, 246, 0.1);
+            border-color: rgba(139, 92, 246, 0.2);
+        }
 
         /* --- Single Quote View (Fixed Height Card) --- */
         .quote-card {
@@ -168,7 +179,7 @@
             border-radius: var(--radius-l);
             box-shadow: var(--shadow);
             border: var(--glass-border);
-            height: 580px; /* Slightly taller for new layout */
+            height: 580px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -192,7 +203,7 @@
         .fade-content { animation: fadeIn 0.4s ease forwards; }
 
         .quote-text {
-            font-size: 1.6rem; /* Slightly smaller for mobile safety */
+            font-size: 1.6rem;
             font-weight: 800;
             line-height: 1.35;
             margin-bottom: 1.5rem;
@@ -217,21 +228,21 @@
             letter-spacing: 0.5px;
         }
 
-        /* --- NEW LAYOUT: Stacked Controls --- */
+        /* --- STACKED LAYOUT --- */
         .card-actions {
             background: rgba(0,0,0,0.02);
             border-top: 1px solid var(--border);
             padding: 1rem 1.5rem;
             display: flex;
-            flex-direction: column; /* Stack vertically */
+            flex-direction: column;
             gap: 1rem;
-            min-height: 140px; /* Ensure space for both rows */
+            min-height: 140px;
         }
         
         /* Top Row: Icons */
         .action-group {
             display: flex;
-            justify-content: center; /* Center them */
+            justify-content: center;
             gap: 1.5rem;
             width: 100%;
         }
@@ -256,17 +267,14 @@
         }
 
         .nav-btn {
-            flex: 1; /* Split width 50/50 */
+            flex: 1;
             height: 55px;
             border-radius: var(--radius-s);
             font-size: 1.5rem;
-            
-            /* High Visibility */
             background-color: var(--btn-bg);
             border: 2px solid var(--btn-border);
             color: var(--text-primary);
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            
             display: flex;
             justify-content: center;
             align-items: center;
@@ -371,7 +379,7 @@
             </div>
             
             <div class="filter-group">
-                <button onclick="shuffleQuotes()" title="Shuffle">
+                <button id="shuffle-btn" class="btn-filter-toggle" onclick="toggleShuffle()" title="Toggle Shuffle Mode">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:20px;height:20px;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 </button>
 
@@ -500,8 +508,9 @@
         let filterCategory = 'all';
         let filterFav = false;
         let deleteIdTarget = null;
-        let editIdTarget = null; // null means 'add mode', ID means 'edit mode'
+        let editIdTarget = null;
         let isCustomCategory = false;
+        let isShuffle = false; // New Shuffle State
 
         // --- Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -520,15 +529,13 @@
         }
 
         function getUniqueCategories() {
-            const cats = new Set(['motivation', 'study', 'life', 'tech', 'other']); // Defaults
+            const cats = new Set(['motivation', 'study', 'life', 'tech', 'other']);
             quotes.forEach(q => cats.add(q.category));
             return Array.from(cats).sort();
         }
 
         function refreshCategories() {
             const cats = getUniqueCategories();
-            
-            // 1. Update Filter Dropdown
             const filterSelect = document.getElementById('category-filter');
             const currentFilter = filterSelect.value;
             filterSelect.innerHTML = '<option value="all">All Topics</option>';
@@ -540,7 +547,6 @@
             });
             filterSelect.value = currentFilter;
 
-            // 2. Update Modal Dropdown
             const modalSelect = document.getElementById('modal-category-select');
             modalSelect.innerHTML = '';
             cats.forEach(c => {
@@ -575,7 +581,6 @@
             document.getElementById('display-author').textContent = quote.author;
             document.getElementById('display-category').textContent = quote.category;
 
-            // Bookmark State
             const bmBtn = document.getElementById('card-bookmark-btn');
             if (quote.bookmarked) {
                 bmBtn.classList.add('active');
@@ -623,12 +628,9 @@
         }
 
         // --- Modals & CRUD ---
-        
         function openModal(mode, quote = null) {
             const modal = document.getElementById('main-modal');
             const title = document.getElementById('modal-title');
-            
-            // Reset custom category state
             isCustomCategory = false;
             updateCustomCategoryUI();
 
@@ -644,16 +646,9 @@
                 title.textContent = "Edit Quote";
                 document.getElementById('modal-text').value = quote.text;
                 document.getElementById('modal-author').value = quote.author;
-                
-                // Check if existing category is in the select, if not (shouldn't happen often) or if we just want to be safe
                 const select = document.getElementById('modal-category-select');
-                if ([...select.options].some(o => o.value === quote.category)) {
-                    select.value = quote.category;
-                } else {
-                    // It's a custom one that somehow didn't populate? populate it first
-                    refreshCategories();
-                    select.value = quote.category;
-                }
+                if ([...select.options].some(o => o.value === quote.category)) select.value = quote.category;
+                else { refreshCategories(); select.value = quote.category; }
             }
             modal.classList.add('active');
         }
@@ -677,7 +672,6 @@
             const select = document.getElementById('modal-category-select');
             const input = document.getElementById('modal-category-input');
             const btn = document.querySelector('.topic-selector-container button');
-
             if (isCustomCategory) {
                 select.classList.add('hidden');
                 input.classList.remove('hidden');
@@ -694,25 +688,17 @@
             const text = document.getElementById('modal-text').value;
             const author = document.getElementById('modal-author').value;
             let category = '';
-
             if (isCustomCategory) {
                 category = document.getElementById('modal-category-input').value.trim().toLowerCase();
                 if(!category) return showToast("Please enter a custom category name", "danger");
-            } else {
-                category = document.getElementById('modal-category-select').value;
-            }
+            } else category = document.getElementById('modal-category-select').value;
 
             if (!text || !author) return showToast("Please fill in quote and author", "danger");
 
             if (editIdTarget === null) {
-                // ADD NEW
-                quotes.push({
-                    id: Date.now(),
-                    text, author, category, bookmarked: false
-                });
+                quotes.push({ id: Date.now(), text, author, category, bookmarked: false });
                 showToast("Added successfully!", "success");
             } else {
-                // UPDATE EXISTING
                 const index = quotes.findIndex(q => q.id === editIdTarget);
                 if (index !== -1) {
                     quotes[index].text = text;
@@ -721,25 +707,60 @@
                     showToast("Updated successfully!", "success");
                 }
             }
-
             localStorage.setItem('luminaQuotes', JSON.stringify(quotes));
-            refreshCategories(); // In case a new custom topic was added
+            refreshCategories();
             applyFilters();
             closeModal('main-modal');
         }
 
-        // --- Standard Logic (Next, Prev, Shuffle, Share, Delete) ---
+        // --- Shuffle & Navigation ---
+        
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            const btn = document.getElementById('shuffle-btn');
+            if(isShuffle) {
+                btn.classList.add('active');
+                showToast("Shuffle Mode: ON", "info");
+            } else {
+                btn.classList.remove('active');
+                showToast("Shuffle Mode: OFF", "info");
+            }
+        }
+
+        function pickRandomQuote() {
+            const filtered = getFilteredQuotes();
+            if (filtered.length > 1) {
+                let newIndex;
+                do { newIndex = Math.floor(Math.random() * filtered.length); } while (newIndex === currentIndex);
+                currentIndex = newIndex;
+                triggerFadeAnimation();
+                renderCurrentCard();
+            }
+        }
+
         function nextQuote() {
-            currentIndex++;
-            triggerFadeAnimation();
-            renderCurrentCard();
+            if (isShuffle) {
+                pickRandomQuote();
+            } else {
+                currentIndex++;
+                triggerFadeAnimation();
+                renderCurrentCard();
+            }
         }
 
         function prevQuote() {
-            currentIndex--;
-            triggerFadeAnimation();
-            renderCurrentCard();
+            if (isShuffle) {
+                pickRandomQuote();
+            } else {
+                currentIndex--;
+                triggerFadeAnimation();
+                renderCurrentCard();
+            }
         }
+        
+        // Retaining old function for toolbar button compatibility if needed, 
+        // but button now calls toggleShuffle
+        function shuffleQuotes() { toggleShuffle(); } 
 
         function triggerFadeAnimation() {
             const el = document.getElementById('quote-display-area');
@@ -748,18 +769,7 @@
             el.classList.add('fade-content');
         }
 
-        function shuffleQuotes() {
-            const filtered = getFilteredQuotes();
-            if (filtered.length > 1) {
-                let newIndex;
-                do { newIndex = Math.floor(Math.random() * filtered.length); } while (newIndex === currentIndex);
-                currentIndex = newIndex;
-                triggerFadeAnimation();
-                renderCurrentCard();
-                showToast("Shuffled!", "info");
-            }
-        }
-
+        // --- Other Actions ---
         function shareQuote() {
             const filtered = getFilteredQuotes();
             if (filtered.length > 0) {
@@ -768,12 +778,8 @@
                 textArea.value = `"${q.text}" — ${q.author}`;
                 document.body.appendChild(textArea);
                 textArea.select();
-                try {
-                    document.execCommand('copy');
-                    showToast("Copied to clipboard!", "success");
-                } catch (err) {
-                    showToast("Failed to copy", "danger");
-                }
+                try { document.execCommand('copy'); showToast("Copied to clipboard!", "success"); } 
+                catch (err) { showToast("Failed to copy", "danger"); }
                 document.body.removeChild(textArea);
             }
         }
@@ -790,7 +796,6 @@
                 localStorage.setItem('luminaQuotes', JSON.stringify(quotes));
                 if(quotes[index].bookmarked) showToast("Bookmarked", "success");
                 else showToast("Removed Bookmark", "info");
-                
                 if (!document.getElementById('card-container').classList.contains('hidden')) renderCurrentCard();
                 else renderList();
             }
@@ -810,7 +815,7 @@
             if (deleteIdTarget !== null) {
                 quotes = quotes.filter(q => q.id !== deleteIdTarget);
                 localStorage.setItem('luminaQuotes', JSON.stringify(quotes));
-                refreshCategories(); // Clean up empty categories? Optional. Keeping them simpler.
+                refreshCategories();
                 closeModal('delete-modal');
                 if (currentIndex >= getFilteredQuotes().length) currentIndex = Math.max(0, getFilteredQuotes().length - 1);
                 applyFilters();
